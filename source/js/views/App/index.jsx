@@ -5,10 +5,17 @@ import { firebaseAuth } from 'utils/firebase_config';
 import Routes, { routeCodes } from 'config/routes';
 import { getUser } from 'actions/login';
 import { connect } from 'react-redux';
+import MuiThemeProvider from 'material-ui/styles/MuiThemeProvider';
 
-@connect()
+@connect(state => ({
+  loggedInUser: state.login.get('loggedInUser'),
+}))
 class App extends Component {
   static propTypes = {
+    history: PropTypes.oneOfType([
+      PropTypes.func,
+      PropTypes.object,
+    ]),
     dispatch: PropTypes.func,
   }
 
@@ -17,12 +24,9 @@ class App extends Component {
     firebaseAuth().onAuthStateChanged((user) => {
       if (user && user.email.endsWith('work.co')) {
         dispatch(getUser(user.uid, user.email, user.displayName));
-        this.props.history.push(routeCodes.HOME);
-        console.log('redirectovao home');
+          this.props.history.push(routeCodes.HOME);
       } else {
         this.props.history.push(routeCodes.LOGIN);
-        console.log('redirectovao login');
-
       }
     });
   }
@@ -30,7 +34,9 @@ class App extends Component {
   render() {
     return (
       <div className='App'>
-        <Routes />
+        <MuiThemeProvider>
+          <Routes />
+        </MuiThemeProvider>
       </div>
     );
   }
