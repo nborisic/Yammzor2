@@ -4,24 +4,29 @@ import PropTypes from 'prop-types';
 import { firebaseCurrentUser } from 'api/auth';
 import { weekDays } from 'utils/global';
 import DatePicker from 'material-ui/DatePicker';
+import { submitMenu } from 'actions/admin';
 
 @connect(state => ({
   loggedInUser: state.login.get('loggedInUser'),
+  postSuccess: state.admin.get('postMenuSuccess'),
+  postError: state.admin.get('postMenuError'),
+  postLoading: state.admin.get('postMenuLoading'),
 }))
 export default class Admin extends Component {
   static propTypes = {
-    loggedInUser: PropTypes.object,
+    postSuccess: PropTypes.string,
     dispatch: PropTypes.func,
   }
 
-  constructor() {
-    super();
+  constructor(props) {
+    super(props);
 
     this.state = {
       fromDate: null,
       toDate: null,
       formSubmit: null,
       formError: null,
+      formSuccess: this.props.postSuccess,
       menu: '',
       weekMenuArray: null,
     };
@@ -73,8 +78,9 @@ export default class Admin extends Component {
   postToFirebase(e) {
     e.preventDefault();
     const { fromDate, toDate, weekMenuArray, formError } = this.state;
+    const { dispatch } = this.props;
 
-    if (formError != null) {
+    if (formError) {
       this.setState({
         formError: null,
       });
@@ -98,7 +104,7 @@ export default class Admin extends Component {
     menuObject[`from ${ fromDate } to ${ toDate }`] = weekMenu;
 
     // provera validnosti forme
-    let formErrorMessage;
+    let formErrorMessage = null;
     const weekDaysExpression = new RegExp(`^${ weekDays.join('|^') }`);
     for (let i = 0; i < weekMenuArray.length; i++) {
       if (!weekDaysExpression.test(weekMenuArray[i][0])) {
@@ -112,38 +118,16 @@ export default class Admin extends Component {
     }
     this.setState({
       formError: formErrorMessage,
+    }, () => {
+      if (this.state.formError === null) {
+        dispatch(submitMenu(menuObject));
+      }
     });
-
-    if (firebaseCurrentUser()) {
-      firebaseCurrentUser().getIdToken(true).then((idToken) => {
-        fetch(`https://yamzor-2.firebaseio.com/menu.json?auth=${ idToken }`, {
-          method: 'PATCH',
-          headers: {
-            'Accept': 'application/json',
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify(menuObject),
-        });
-      })
-      .then(
-        () => {
-          this.setState({
-            formSubmit: 'Forma uspesno poslata!',
-          });
-        }
-      )
-      .catch(
-        () => {
-          this.setState({
-            formError: 'Ups, nesto je poslo po zlu.. forma nije poslata',
-          });
-        }
-      );
-    }
   }
 
   render() {
     const { menu, weekMenuArray, formError, formSubmit } = this.state;
+    const { postError, postSuccess, postLoading } = this.props;
     const menuItem = [];
     if (weekMenuArray) {
       weekMenuArray.map((oneDay) => {
@@ -185,7 +169,7 @@ export default class Admin extends Component {
                 value={ menu }
               />
               <button type='submit'> Posalji </button>
-              <span className={ formError ? 'warningText' : 'successText' }>{ formError || formSubmit }</span>
+              <span className={ formError || postError ? 'warningText' : 'successText' }>{ formError || postError || postSuccess }</span>
             </form>
           </div>
           <div className='item'>
