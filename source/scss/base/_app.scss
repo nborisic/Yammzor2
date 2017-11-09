@@ -178,3 +178,41 @@ hr {
   border-top: 1px solid $grey-border;
   margin: 2rem 0;
 }
+
+
+
+
+
+
+
+
+
+
+.container {
+  display: flex;
+}
+
+.item {
+  margin: 0 auto;
+  flex-basis: 50%;
+  text-align: center;
+}
+
+.left_item {
+  flex-basis: 50%;
+}
+
+.display-linebreak {
+  white-space: pre-line;
+}
+
+.warningText {
+  color: red;
+  font-weight: bold;
+}
+
+.successText {
+  color: #216C2A;
+  font-style: italic;
+
+}

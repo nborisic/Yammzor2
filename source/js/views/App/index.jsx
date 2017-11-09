@@ -24,7 +24,7 @@ class App extends Component {
     firebaseAuth().onAuthStateChanged((user) => {
       if (user && user.email.endsWith('work.co')) {
         dispatch(getUser(user.uid, user.email, user.displayName));
-          this.props.history.push(routeCodes.HOME);
+        this.props.history.push(routeCodes.HOME);
       } else {
         this.props.history.push(routeCodes.LOGIN);
       }
