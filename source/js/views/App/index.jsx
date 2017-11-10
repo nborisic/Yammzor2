@@ -16,11 +16,14 @@ class App extends Component {
       PropTypes.func,
       PropTypes.object,
     ]),
+    loggedInUser: PropTypes.object,
     dispatch: PropTypes.func,
   }
 
   componentWillMount() {
     const { dispatch } = this.props;
+    if (location.pathname !== routeCodes.LOGIN) localStorage.setItem('init-path', location.pathname);
+
     firebaseAuth().onAuthStateChanged((user) => {
       if (user && user.email.endsWith('work.co')) {
         dispatch(getUser(user.uid, user.email, user.displayName));
@@ -29,6 +32,20 @@ class App extends Component {
         this.props.history.push(routeCodes.LOGIN);
       }
     });
+  }
+
+  componentWillReceiveProps(nextProps) {
+    const { loggedInUser } = this.props;
+    const path = localStorage.getItem('init-path');
+    if (nextProps.loggedInUser !== loggedInUser && nextProps.loggedInUser) {
+      // if (!nextProps.loggedInUser.username) redirectTo(routeCodes.PROFILE);
+      if (path) {
+        this.props.history.push(path);
+        localStorage.removeItem('init-path');
+      } else {
+        this.props.history.push(routeCodes.HOME);
+      }
+    }
   }
 
   render() {

@@ -1,183 +1,51 @@
 import React, { Component } from 'react';
-import { connect } from 'react-redux';
-import PropTypes from 'prop-types';
-import { firebaseCurrentUser } from 'api/auth';
-import { weekDays } from 'utils/global';
-import DatePicker from 'material-ui/DatePicker';
-import { submitMenu } from 'actions/admin';
+import { Tabs, Tab } from 'material-ui/Tabs';
+import MenuInput from 'components/Admin/MenuInput';
+import Users from 'components/Admin/Users';
 
-@connect(state => ({
-  loggedInUser: state.login.get('loggedInUser'),
-  postSuccess: state.admin.get('postMenuSuccess'),
-  postError: state.admin.get('postMenuError'),
-  postLoading: state.admin.get('postMenuLoading'),
-}))
+
 export default class Admin extends Component {
-  static propTypes = {
-    postSuccess: PropTypes.string,
-    dispatch: PropTypes.func,
-  }
-
-  constructor(props) {
-    super(props);
+  constructor() {
+    super();
 
     this.state = {
-      fromDate: null,
-      toDate: null,
-      formSubmit: null,
-      formError: null,
-      formSuccess: this.props.postSuccess,
-      menu: '',
-      weekMenuArray: null,
+      tabValue: 'menuInput',
     };
-
-    this.postToFirebase = this.postToFirebase.bind(this);
-    this.onInputChange = this.onInputChange.bind(this);
-    this.setFromDate = this.setFromDate.bind(this);
-    this.setToDate = this.setToDate.bind(this);
+    this.handleTabChange = this.handleTabChange.bind(this);
   }
-  onInputChange(e) {
-    // sece tekst i odbacuje rimske brojeve i na mestima gde ima 3 nova reda
-    const stringArray = e.target.value.split(/\n[IVabc]{1,4}\n|\n{3}/);
-    let day;
-    const weekMenuArray = [];
-    for (let i = 0; i < stringArray.length; i++) {
-      for (let j = 0; j < weekDays.length; j++) {
-        if (stringArray[i].includes(weekDays[j])) {
-          day = day === undefined ? 0 : day + 1;
-          weekMenuArray[day] = [];
-          // uklanja nepotrebne datume pored dana
-          stringArray[i] = stringArray[i].replace(/[\d,.\s]/g, '');
-          break;
-        }
-      }
-      // array sa odvojenim danima u nedelji
-      weekMenuArray[day].push(stringArray[i].trim());
-    }
 
+
+  handleTabChange(value) {
     this.setState({
-      menu: e.target.value,
-      weekMenuArray,
+      tabValue: value,
     });
   }
-
-  setFromDate(e, date) {
-    const reDate = new Intl.DateTimeFormat('en-GB').format(date).replace(/\//g, '-');
-    this.setState({
-      fromDate: reDate,
-    });
-  }
-
-  setToDate(e, date) {
-    const reDate = new Intl.DateTimeFormat('en-GB').format(date).replace(/\//g, '-');
-    this.setState({
-      toDate: reDate,
-    });
-  }
-
-  postToFirebase(e) {
-    e.preventDefault();
-    const { fromDate, toDate, weekMenuArray, formError } = this.state;
-    const { dispatch } = this.props;
-
-    if (formError) {
-      this.setState({
-        formError: null,
-      });
-    }
-
-    // generisanje objekta za slanje u bazu
-    const reducedObj = function (acc, currentValue) {
-      return Object.assign(acc, {
-        [currentValue[0]]: (function () {
-          let dayObj = {};
-          for (let i = 1; i < currentValue.length; i++) {
-            const oneDish = { [i]: currentValue[i] };
-            dayObj = Object.assign(dayObj, oneDish);
-          }
-          return dayObj;
-        }()),
-      });
-    };
-    const weekMenu = weekMenuArray.reduce(reducedObj, {});
-    const menuObject = {};
-    menuObject[`from ${ fromDate } to ${ toDate }`] = weekMenu;
-
-    // provera validnosti forme
-    let formErrorMessage = null;
-    const weekDaysExpression = new RegExp(`^${ weekDays.join('|^') }`);
-    for (let i = 0; i < weekMenuArray.length; i++) {
-      if (!weekDaysExpression.test(weekMenuArray[i][0])) {
-        formErrorMessage = 'Pogresno unet dan, forma nije poslata';
-      }
-      for (let j = 0; j < weekMenuArray[i].length; j++) {
-        if (weekMenuArray[i][j] === '') {
-          formErrorMessage = 'Imate viska red, forma nije poslata';
-        }
-      }
-    }
-    this.setState({
-      formError: formErrorMessage,
-    }, () => {
-      if (this.state.formError === null) {
-        dispatch(submitMenu(menuObject));
-      }
-    });
-  }
-
   render() {
-    const { menu, weekMenuArray, formError, formSubmit } = this.state;
-    const { postError, postSuccess, postLoading } = this.props;
-    const menuItem = [];
-    if (weekMenuArray) {
-      weekMenuArray.map((oneDay) => {
-        menuItem.push(<h4 key={ oneDay[0] }>{ oneDay[0] }</h4>);
-        for (let i = 1; i < oneDay.length; i++) {
-          menuItem.push(
-            <div key={ oneDay[0] + i }>
-              <div style={ { fontWeight: 'bold' } }>{ i }</div>
-              <div>{ oneDay[i] }</div>
-            </div>
-          );
-        }
-        return true;
-      });
-    }
-
     return (
       <div className='Admin'>
-        hello admineee
-        <DatePicker
-          formatDate={ (date) => new Intl.DateTimeFormat('en-GB').format(date) }
-          autoOk={ true }
-          onChange={ this.setFromDate }
-          hintText='od'
-        />
-        <DatePicker
-          formatDate={ (date) => new Intl.DateTimeFormat('en-GB').format(date) }
-          autoOk={ true }
-          onChange={ this.setToDate }
-          hintText='do'
-        />
-        <div className='container'>
-          <div className='left_item'>
-            <form onSubmit={ this.postToFirebase }>
-              <textarea
-                rows='90'
-                cols='50'
-                onChange={ this.onInputChange }
-                value={ menu }
-              />
-              <button type='submit'> Posalji </button>
-              <span className={ formError || postError ? 'warningText' : 'successText' }>{ formError || postError || postSuccess }</span>
-            </form>
-          </div>
-          <div className='item'>
-            <div className='display-linebreak'>
-              { menuItem }
-            </div>
-          </div>
-        </div>
+        <Tabs
+          value={ this.state.tabValue }
+          onChange={ this.handleTabChange }
+        >
+          <Tab
+            value='menuInput'
+            label='Menu Input'
+          >
+            <MenuInput />
+          </Tab>
+          <Tab
+            value='userMenagment'
+            label='User managment'
+          >
+            <Users userRequest={ this.state.tabValue } />
+          </Tab>
+          <Tab
+            value='report'
+            label='Report'
+          >
+        report
+          </Tab>
+        </Tabs>
       </div>
     );
   }

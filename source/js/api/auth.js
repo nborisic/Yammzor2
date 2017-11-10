@@ -11,3 +11,7 @@ export function firebaseLogOut() {
 export function firebaseCurrentUser() {
   return firebaseAuth().currentUser;
 }
+
+export function getIdToken() {
+  return firebaseAuth().currentUser.getIdToken(true);
+}
