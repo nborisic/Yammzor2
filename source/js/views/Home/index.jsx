@@ -4,6 +4,8 @@ import PropTypes from 'prop-types';
 import { logOutUser } from 'actions/login';
 import { firebaseLogOut, firebaseCurrentUser } from 'api/auth';
 import { Link } from 'react-router-dom';
+import {Tabs, Tab} from 'material-ui/Tabs';
+import PickLunch from 'components/User/PickLunch'
 
 
 @connect(state => ({
@@ -35,22 +37,28 @@ export default class Home extends Component {
       loggedInUser,
     } = this.props;
 
-    // if (firebaseCurrentUser()) {
-    //   firebaseCurrentUser().getIdToken(true).then((idToken) => {
-    //     fetch(`https://yamzor-2.firebaseio.com/users.json?auth=${ idToken }`).then((result) => {
-    //       return result.json();
-    //     })
-    //     .then((response) => {
-    //       console.log(response);
-    //     });
-    //   });
-    // }
 
     return (
       <div className='Home'>
         hello user
         <button onClick={ this.handleLogOut }>logout</button>
         <Link to='/admin'> Admin </Link>
+        <Tabs >
+          <Tab
+            value='izaberiRucak'
+            label='Izaberi Rucak'
+          >
+            <PickLunch />
+          </Tab>
+          <Tab
+            value='pregledNarudzbine'
+            label='Pregled'
+          >
+            <div>
+              pregled
+            </div>
+          </Tab>
+        </Tabs>
       </div>
     );
   }

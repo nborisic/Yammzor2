@@ -36,6 +36,7 @@ export default class Popup extends Component {
   handleConfirm() {
     const { dispatch } = this.props;
     dispatch(deleteUser(this.props.uid));
+    this.setState({ open: false });
   }
 
   render() {

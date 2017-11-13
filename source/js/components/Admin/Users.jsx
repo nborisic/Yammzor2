@@ -12,7 +12,6 @@ import Popup from './DialogBox';
 export default class Users extends Component {
   static propTypes = {
     userRequest: PropTypes.string,
-    deletedUser: PropTypes.string,
     allUsers: PropTypes.object,
     dispatch: PropTypes.func,
   }
@@ -21,7 +20,7 @@ export default class Users extends Component {
     super(props);
 
     this.state = {
-      deleteMessage: this.props.deletedUser,
+      deleteMessage: null,
       deleteMessageError: null,
       updateRoleMessage: null,
     };
@@ -31,9 +30,6 @@ export default class Users extends Component {
 
   componentWillReceiveProps(nextProps) {
     const { dispatch, allUsers } = this.props;
-    this.setState({
-      deleteMessage: this.props.deletedUser,
-    });
 
     if (nextProps.userRequest === 'userMenagment') {
       if (nextProps.allUsers === allUsers) {
@@ -102,7 +98,6 @@ export default class Users extends Component {
             { allUsers ? tableRow : ''}
           </TableBody>
         </Table>
-        <span>{ this.props.deletedUser }</span>
       </div>
     );
   }
