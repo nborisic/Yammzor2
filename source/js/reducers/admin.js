@@ -7,6 +7,11 @@ import {
   GET_ALL_USERS_START,
   GET_ALL_USERS_SUCCESS,
   GET_ALL_USERS_ERROR,
+  UPDATE_ROLE_START,
+  UPDATE_ROLE_SUCCESS,
+  UPDATE_ROLE_ERROR,
+  DELETE_USER_SUCCESS,
+  DELETE_USER_ERROR,
 } from 'actions/admin';
 
 const initialState = Map({
@@ -53,6 +58,34 @@ const actionsMap = {
     return state.merge(Map({
       getAllUsersSuccess: action.data,
       getAllUsersLoading: false,
+    }));
+  },
+  [UPDATE_ROLE_START]: (state) => {
+    return state.merge(Map({
+      updateRoleLoading: true,
+      updateRoleError: false,
+    }));
+  },
+  [UPDATE_ROLE_ERROR]: (state, action) => {
+    return state.merge(Map({
+      updateRoleLoading: false,
+      updateRoleError: action.error,
+    }));
+  },
+  [UPDATE_ROLE_SUCCESS]: (state, action) => {
+    return state.merge(Map({
+      updateRoleLoading: false,
+      updateRoleSuccess: action.data,
+    }));
+  },
+  [DELETE_USER_ERROR]: (state, action) => {
+    return state.merge(Map({
+      deleteUserError: action.message,
+    }));
+  },
+  [DELETE_USER_SUCCESS]: (state, action) => {
+    return state.merge(Map({
+      deleteUserSuccess: action.message,
     }));
   },
 };

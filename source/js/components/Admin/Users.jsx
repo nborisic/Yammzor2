@@ -2,24 +2,39 @@ import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
 import { Table, TableBody, TableHeader, TableHeaderColumn, TableRow, TableRowColumn } from 'material-ui/Table';
-import { getAllUsers } from 'actions/admin';
+import { getAllUsers, updateRole } from 'actions/admin';
+import Popup from './DialogBox';
 
 @connect(state => ({
   allUsers: state.admin.get('getAllUsersSuccess'),
+  deletedUser: state.admin.get('deleteUserSuccess'),
 }))
 export default class Users extends Component {
   static propTypes = {
     userRequest: PropTypes.string,
+    deletedUser: PropTypes.string,
     allUsers: PropTypes.object,
     dispatch: PropTypes.func,
   }
 
-  componentWillReceiveProps(nextProps) {
-    console.log(nextProps.allUsers);
-    console.log(this.props.allUsers);
-    console.log(nextProps.allUsers === this.props.allUsers);
+  constructor(props) {
+    super(props);
 
+    this.state = {
+      deleteMessage: this.props.deletedUser,
+      deleteMessageError: null,
+      updateRoleMessage: null,
+    };
+
+    this.changeRole = this.changeRole.bind(this);
+  }
+
+  componentWillReceiveProps(nextProps) {
     const { dispatch, allUsers } = this.props;
+    this.setState({
+      deleteMessage: this.props.deletedUser,
+    });
+
     if (nextProps.userRequest === 'userMenagment') {
       if (nextProps.allUsers === allUsers) {
         dispatch(getAllUsers());
@@ -27,13 +42,17 @@ export default class Users extends Component {
     }
   }
 
+  changeRole(e) {
+    const { dispatch } = this.props;
+    const { value, name } = e.target;
+    dispatch(updateRole(value, name));
+  }
+
 
   render() {
     const { allUsers } = this.props;
     const tableRow = [];
     if (allUsers) {
-      // console.log(allUsers);
-      // console.log(Object.keys(allUsers));
       for (let i = 0; i < Object.keys(allUsers).length; i++) {
         tableRow.push(
           <TableRow key={ i }>
@@ -41,40 +60,50 @@ export default class Users extends Component {
             <TableRowColumn>{allUsers[Object.keys(allUsers)[i]].username}</TableRowColumn>
             <TableRowColumn>{allUsers[Object.keys(allUsers)[i]].email}</TableRowColumn>
             <TableRowColumn>
-              <select>
+              <select
+                onChange={ this.changeRole }
+                defaultValue={ allUsers[Object.keys(allUsers)[i]].role }
+                name={ Object.keys(allUsers)[i] }
+              >
                 <option value='USER'>USER</option>
                 <option value='ADMIN'>ADMIN</option>
               </select>
             </TableRowColumn>
             <TableRowColumn>
-              <button> delate</button>
+              <Popup
+                user={ allUsers[Object.keys(allUsers)[i]].username }
+                uid={ Object.keys(allUsers)[i] }
+              />
             </TableRowColumn>
           </TableRow>
         );
       }
     }
     return (
-      <Table
-        allRowsSelected={ false }
-      >
-        <TableHeader
-          adjustForCheckbox={ false }
-          displaySelectAll={ false }
+      <div>
+        <Table
+          allRowsSelected={ false }
         >
-          <TableRow>
-            <TableHeaderColumn> No. </TableHeaderColumn>
-            <TableHeaderColumn> User name </TableHeaderColumn>
-            <TableHeaderColumn> User mail </TableHeaderColumn>
-            <TableHeaderColumn> Role </TableHeaderColumn>
-            <TableHeaderColumn> Delate user </TableHeaderColumn>
-          </TableRow>
-        </TableHeader>
-        <TableBody
-          displayRowCheckbox={ false }
-        >
-          { allUsers ? tableRow : ''}
-        </TableBody>
-      </Table>
+          <TableHeader
+            adjustForCheckbox={ false }
+            displaySelectAll={ false }
+          >
+            <TableRow>
+              <TableHeaderColumn> No. </TableHeaderColumn>
+              <TableHeaderColumn> User name </TableHeaderColumn>
+              <TableHeaderColumn> User mail </TableHeaderColumn>
+              <TableHeaderColumn> Role </TableHeaderColumn>
+              <TableHeaderColumn> Delate user </TableHeaderColumn>
+            </TableRow>
+          </TableHeader>
+          <TableBody
+            displayRowCheckbox={ false }
+          >
+            { allUsers ? tableRow : ''}
+          </TableBody>
+        </Table>
+        <span>{ this.props.deletedUser }</span>
+      </div>
     );
   }
 }
